@@ -1,26 +1,27 @@
 /* appearance */
-static const unsigned int borderpx  = 2;        /* border pixel of windows */
+static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
-static const int topbar             = 0;        /* 0 means bottom bar */
+static const int topbar             = 1;        /* 0 means bottom bar */
 static const char *fonts[]          = { 
-	"JetBrains Mono Medium:size=13",
-	"Font Awesome 6 Free Solid:size=13"
+	"JetBrains Mono Medium:size=10",
+	"Font Awesome 6 Free Solid:size=10"
 };
-static const char dmenufont[]       = "JetBrains Mono Medium:size=13";
-static const char col_gray1[]       = "#ffffff";
-static const char col_gray2[]       = "#222222";
-static const char col_gray3[]       = "#222222";
+static const char rofifont[]        = "JetBrains Mono 12";
+static const char col_gray1[]       = "#282a36"; //10151a
+static const char col_gray2[]       = "#20252a";
+static const char col_gray3[]       = "#c5c8c6";
 static const char col_gray4[]       = "#ffffff";
+static const char col_purple[]      = "#ff79c6";
 static const char col_cyan[]        = "#81a2be";
 static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	[SchemeSel]  = { col_gray4, col_purple,  col_purple  },
 };
 
 /* tagging */
-static const char *tags[] = { "", "", "", "" };
+static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -28,23 +29,28 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Blender",  NULL,       NULL,       0,            1,           -1 },
-	{ "feh",      NULL,       NULL,       0,            1,           -1 },
-	{ "mpv",      NULL,       NULL,       0,            1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       1,           -1 },
+	{ "librewolf",  NULL,       NULL,       1 << 3,       0,           -1 },
+	{ "firefox",  	NULL,       NULL,       1 << 3,       0,           -1 },
+	{ "feh",      	NULL,       NULL,       0,            1,           -1 },
+	{ "mpv",      	NULL,       NULL,       0,            1,           -1 },
+	{ "chromium",  	NULL,       NULL,       1 << 2,       0,           -1 },
+	{ "telegram-desktop",  NULL,   NULL,    1 << 8,       0,           -1 },
+	{ "code", 	NULL,       NULL,       1 << 9,       0,           -1 },
 };
 
 /* layout(s) */
 static const float mfact     = 0.5; /* factor of master area size [0.05..0.95] */
 static const int nmaster     = 1;    /* number of clients in master area */
-static const int resizehints = 10;    /* 1 means respect size hints in tiled resizals */
+static const int resizehints = 10;    /*means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 
+static const Bool tilevoid = True;
+
 static const Layout layouts[] = {
-	/* symbol     arrange function */
-	{ "┇  ",      tile },    /* first entry is default */
-	{ "┇  ",      NULL },    /* no layout function means floating behavior */
-	{ "┇  [M]",      monocle },
+/* symbol arrange function */
+	{ "|  ",      tile },    /* first entry is default */
+	{ "|  📌",      NULL },    /* no layout function means floating behavior */
+	{ "|  🖼",    monocle },
 };
 
 /* key definitions */
@@ -55,7 +61,6 @@ static const Layout layouts[] = {
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 
-
 #include <X11/XF86keysym.h>
 #define XF86XK_AudioLowerVolume	0x1008FF11   /* Volume control down        */
 #define XF86XK_AudioMute	0x1008FF12   /* Mute sound from the system */
@@ -63,38 +68,62 @@ static const Layout layouts[] = {
 #define XF86XK_MonBrightnessUp   0x1008FF02  /* Monitor/panel brightness */
 #define XF86XK_MonBrightnessDown 0x1008FF03  /* Monitor/panel brightness */
 
-
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "dmenu_run", "-b", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+static const char *roficmd[] = { "rofi", "-width", "120", "-element-height", "32", "-icon-size", "24", "-show-icons", "-font", rofifont, "-show", "drun", NULL };
 static const char *termcmd[]  = { "kitty", NULL };
+static const char *librewolf[]  = { "librewolf", NULL };
+static const char *chromium[]  = { "chromium", NULL };
+static const char *torbrowser[]  = { "tor-browser", NULL };
+static const char *vscode[]  = { "code", NULL };
+static const char *notepad[]  = { "notepadqq", NULL };
+static const char *explorer[]  = { "pcmanfm", NULL };
+static const char *telegram[]  = { "telegram-desktop", NULL };
+static const char *xlock[]  = { "xlock", NULL };
 static const char *brupcmd[] = { "light", "-A", "10", NULL };
 static const char *brdowncmd[] = { "light", "-U", "10", NULL };
 static const char *flameshot[] = { "flameshot", "gui", NULL };
-
+static const char *upvol[] = { "/usr/bin/pactl", "set-sink-volume", "@DEFAULT_SINK@", "+5%", NULL };
+static const char *downvol[] = { "/usr/bin/pactl", "set-sink-volume", "@DEFAULT_SINK@", "-5%", NULL };
+static const char *mutevol[] = { "/usr/bin/pactl", "set-sink-mute", "@DEFAULT_SINK@", "toggle", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY,                       XK_d,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_e,      spawn,          {.v = explorer } },
+	{ MODKEY,                       XK_r,      spawn,          {.v = roficmd } },
+	{ MODKEY|ShiftMask,             XK_e,      spawn,          {.v = chromium } },
+	{ MODKEY|ShiftMask,             XK_p,      spawn,          {.v = torbrowser } },
+	{ MODKEY|ShiftMask,             XK_d,      spawn,          {.v = librewolf } },
+	{ MODKEY|ShiftMask,             XK_k,      spawn,          {.v = notepad } },
+	{ MODKEY|ShiftMask,             XK_t,      spawn,          {.v = telegram } },
+	{ MODKEY|ShiftMask,             XK_m,      spawn,          {.v = vscode } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
+	{ ControlMask|Mod1Mask,         XK_t,      spawn,          {.v = termcmd } },
+	{ MODKEY|ShiftMask,             XK_s, 	   spawn,          {.v = flameshot } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
-	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
-	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+	{ MODKEY,                       XK_l,      spawn,      	   {.v = xlock } },
+	{ MODKEY|ControlMask,           XK_Right,  focusstack,     {.i = +1 } },
+	{ MODKEY|ControlMask,           XK_Left,   focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_p,      incnmaster,     {.i = -1 } },
-	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
-	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY|ShiftMask,             XK_h,      setmfact,       {.f = -0.05} },
+	{ MODKEY|ShiftMask,             XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
-	{ MODKEY,                       XK_q,      killclient,     {0} },
+	{ Mod1Mask,                     XK_F4,     killclient,     {0} },
+	{ MODKEY,                     	XK_w,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY,                       XK_space,  setlayout,      {0} },
-	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
+	{ MODKEY,                       XK_g,      setlayout,      {.v = &layouts[1]} },
+	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[2]} },
+	{ MODKEY|ShiftMask,             XK_space,  setlayout,      {0} },
+	{ MODKEY,             		XK_space,  togglefloating, {0} },
+	{ MODKEY, 			XK_Up, 	   setlayout, 	   {.v = &layouts[2]} },
+	{ MODKEY, 			XK_Down,   setlayout,      {.v = &layouts[0]} },
+//	{ MODKEY, 			XK_Right,  resize,     {.v = "1000x1000x2000x0"} },
+//	{ MODKEY, 			XK_Left,   resize,     {.v = "1000x1000x0x0"} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
@@ -112,14 +141,13 @@ static Key keys[] = {
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
   	/* custom */
-	{ 0,                            XF86XK_AudioMute,     spawn,                 SHCMD("pactl set-sink-mute 0 toggle && dunstvol") },
-	{ 0,                            XF86XK_AudioLowerVolume,     spawn,          SHCMD("pactl set-sink-volume 0 -3% && dunstvol") },
-	{ 0,                            XF86XK_AudioRaiseVolume,     spawn,          SHCMD("pactl set-sink-volume 0 +3% && dunstvol") },
+	{ 0,                            XF86XK_AudioMute,    	     spawn,          {.v = mutevol } },
+	{ 0,                            XF86XK_AudioLowerVolume,     spawn,          {.v = downvol } },
+	{ 0,                            XF86XK_AudioRaiseVolume,     spawn,          {.v = upvol } },
 	{ 0,                            XF86XK_MonBrightnessUp,    spawn,          {.v = brupcmd} },
 	{ 0,                            XF86XK_MonBrightnessDown,    spawn,          {.v = brdowncmd} },
         { 0,                            XK_Print,  spawn,          {.v = flameshot} },
 	{ Mod1Mask,                     XK_Shift_L,spawn,          SHCMD("ubar") },
-	{ ShiftMask,          		XK_Alt_L,  spawn,          SHCMD("ubar") },
 	{ MODKEY|ShiftMask,             XK_r,      spawn,          SHCMD("restartdwm") }
 };
 
@@ -140,4 +168,3 @@ static Button buttons[] = {
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
 };
-
